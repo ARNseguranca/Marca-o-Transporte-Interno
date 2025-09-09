@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa de Marcação de Pontos de Ônibus Internos</title>
+  <title>Mapa de Pontos de Ônibus Internos</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
   <style>
     body {
@@ -39,6 +39,31 @@
       font-weight: 600;
     }
 
+    /* Banner de status de conexão */
+    #statusBanner {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      padding: 8px;
+      font-weight: bold;
+      display: none; /* escondido por padrão */
+      z-index: 2000;
+    }
+
+    #statusBanner.offline {
+      background-color: #d9534f;
+      color: white;
+      display: block;
+    }
+
+    #statusBanner.online {
+      background-color: #5cb85c;
+      color: white;
+      display: block;
+    }
+
     #map {
       margin-top: 80px;
       height: calc(100vh - 80px);
@@ -48,7 +73,7 @@
     /* Formulário de agendamento */
     #formAgendamento {
       position: fixed;
-      top: 100px;
+      top: 120px;
       right: 20px;
       background: white;
       border: 2px solid #0078d7;
@@ -56,7 +81,7 @@
       padding: 20px;
       width: 250px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      display: none; /* inicial escondido */
+      display: none;
       z-index: 1001;
     }
 
@@ -157,6 +182,9 @@
     <h1>Mapa de Pontos de Ônibus</h1>
   </header>
 
+  <!-- Banner de status -->
+  <div id="statusBanner"></div>
+
   <div id="map"></div>
 
   <!-- Modal do vídeo obrigatório -->
@@ -184,9 +212,7 @@
       <input type="text" id="ponto" name="entry.1553871928" readonly required>
 
       <label for="horario">Horário:</label>
-      <select id="horario" name="entry.1757535250">
-        <!-- Horários serão preenchidos dinamicamente -->
-      </select>
+      <select id="horario" name="entry.1757535250"></select>
 
       <button type="submit">Agendar</button>
     </form>
@@ -256,7 +282,7 @@
         .on('click', function() {
           pontoInput.value = p.nome;
           formBox.style.display = "block";
-          preencherHorarios(p.nome); // atualiza horários conforme ponto e dia
+          preencherHorarios(p.nome);
         });
     });
 
@@ -280,17 +306,17 @@
     const horariosSelect = document.getElementById("horario");
 
     function preencherHorarios(ponto) {
-      horariosSelect.innerHTML = ""; // limpa horários anteriores
+      horariosSelect.innerHTML = "";
       const hoje = new Date();
-      const dia = hoje.getDay(); // 0=Dom, 1=Seg, ... 6=Sáb
+      const dia = hoje.getDay();
 
       let horarios = [];
-      if (dia >= 1 && dia <= 5) { // Segunda a Sexta
+      if (dia >= 1 && dia <= 5) {
         horarios = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
-      } else if (dia == 6) { // Sábado
-        if(ponto === "Ponto 13" || ponto === "Ponto 24") return; // não precisa agendar
-        horarios = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
-      } else { // Domingo/Feriados
+      } else if (dia == 6) {
+        if(ponto === "Ponto 13" || ponto === "Ponto 24") return;
+        horarios = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"];
+      } else {
         horarios = ["08:00","12:00","14:00","16:00","18:00"];
       }
 
@@ -302,12 +328,17 @@
       });
     }
 
-    // Submissão do formulário
     document.getElementById("form").addEventListener("submit", function(e){
       e.preventDefault();
+
+      if (!navigator.onLine) {
+        alert("⚠️ Você está sem conexão com a internet. O agendamento não foi feito.");
+        return;
+      }
+
       this.submit();
       alert(
-        "Agendamento feito!\n" +
+        "✅ Agendamento feito com sucesso!\n" +
         "Nome: " + document.getElementById("nome").value + "\n" +
         "Ponto: " + pontoInput.value + "\n" +
         "Horário: " + horariosSelect.value
@@ -326,8 +357,26 @@
     });
 
     btnVideoDone.addEventListener("click", function() {
-      videoModal.style.display = "none"; // libera o agendamento
+      videoModal.style.display = "none";
     });
+
+    // -------------------- STATUS DE CONEXÃO --------------------
+    const statusBanner = document.getElementById("statusBanner");
+
+    function atualizarStatus() {
+      if (navigator.onLine) {
+        statusBanner.textContent = "✅ Conexão restabelecida";
+        statusBanner.className = "online";
+        setTimeout(() => { statusBanner.style.display = "none"; }, 3000);
+      } else {
+        statusBanner.textContent = "⚠️ Sem conexão com a internet";
+        statusBanner.className = "offline";
+      }
+    }
+
+    window.addEventListener("online", atualizarStatus);
+    window.addEventListener("offline", atualizarStatus);
+    atualizarStatus();
   </script>
 </body>
 </html>
