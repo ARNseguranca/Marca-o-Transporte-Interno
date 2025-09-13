@@ -16,8 +16,8 @@
     header {
       display: flex;
       align-items: center;
-      background: linear-gradient(90deg, #ffffff, #ffffff);
-      color: rgb(0, 0, 0);
+      background: #ffffff;
+      color: #000;
       padding: 12px 20px;
       position: fixed;
       top: 0;
@@ -39,7 +39,6 @@
       font-weight: 600;
     }
 
-    /* Banner de status de conexão */
     #statusBanner {
       position: fixed;
       top: 60px;
@@ -48,21 +47,12 @@
       text-align: center;
       padding: 8px;
       font-weight: bold;
-      display: none; /* escondido por padrão */
+      display: none;
       z-index: 2000;
     }
 
-    #statusBanner.offline {
-      background-color: #d9534f;
-      color: white;
-      display: block;
-    }
-
-    #statusBanner.online {
-      background-color: #5cb85c;
-      color: white;
-      display: block;
-    }
+    #statusBanner.offline { background-color: #d9534f; color: white; display: block; }
+    #statusBanner.online { background-color: #5cb85c; color: white; display: block; }
 
     #map {
       margin-top: 80px;
@@ -70,7 +60,6 @@
       width: 100%;
     }
 
-    /* Formulário de agendamento */
     #formAgendamento {
       position: fixed;
       top: 120px;
@@ -85,18 +74,9 @@
       z-index: 1001;
     }
 
-    #formAgendamento h3 {
-      margin-top: 0;
-      margin-bottom: 10px;
-      font-size: 1.1rem;
-      color: #004aad;
-    }
+    #formAgendamento h3 { margin: 0 0 10px; font-size: 1.1rem; color: #004aad; }
 
-    #formAgendamento label {
-      display: block;
-      margin-top: 10px;
-      font-weight: 500;
-    }
+    #formAgendamento label { display: block; margin-top: 10px; font-weight: 500; }
 
     #formAgendamento select,
     #formAgendamento input[type="text"] {
@@ -105,7 +85,6 @@
       margin-top: 5px;
       border: 1px solid #ccc;
       border-radius: 6px;
-      box-sizing: border-box;
     }
 
     #formAgendamento button {
@@ -120,21 +99,12 @@
       font-weight: 600;
     }
 
-    #formAgendamento button:hover {
-      background: #004aad;
-    }
+    #formAgendamento button:hover { background: #004aad; }
 
-    #closeForm {
-      position: absolute;
-      top: 8px;
-      right: 10px;
-      cursor: pointer;
-      color: #0078d7;
-      font-weight: bold;
-    }
+    #closeForm { position: absolute; top: 8px; right: 10px; cursor: pointer; color: #0078d7; font-weight: bold; }
 
-    /* Modal do vídeo obrigatório */
-    #videoModal {
+    /* Modal das regras */
+    #rulesModal {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
@@ -145,22 +115,21 @@
       z-index: 2000;
     }
 
-    #videoContainer {
+    #rulesContainer {
       background: #fff;
       padding: 20px;
       border-radius: 10px;
-      text-align: center;
-      max-width: 800px;
+      max-width: 600px;
       width: 90%;
+      text-align: left;
     }
 
-    #videoContainer video {
-      width: 100%;
-      border-radius: 10px;
-    }
+    #rulesContainer h2 { text-align: center; margin-top: 0; }
 
-    #btnVideoDone {
-      margin-top: 10px;
+    #rulesContainer ul { padding-left: 20px; }
+
+    #btnAcceptRules {
+      margin-top: 15px;
       padding: 10px 20px;
       background: #0078d7;
       color: white;
@@ -168,12 +137,10 @@
       border-radius: 6px;
       font-weight: 600;
       cursor: pointer;
+      width: 100%;
     }
 
-    #btnVideoDone:disabled {
-      background: #999;
-      cursor: not-allowed;
-    }
+    #btnAcceptRules:disabled { background: #999; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -182,25 +149,30 @@
     <h1>Mapa de Pontos de Ônibus</h1>
   </header>
 
-  <!-- Banner de status -->
   <div id="statusBanner"></div>
-
   <div id="map"></div>
 
-  <!-- Modal do vídeo obrigatório -->
-  <div id="videoModal">
-    <div id="videoContainer">
-      <h2>Assista ao vídeo antes de agendar</h2>
-      <video id="videoObrigatorio" controls>
-        <source src="Transporte Interno ARN.mp4" type="video/mp4">
-        Seu navegador não suporta vídeos HTML5.
-      </video>
-      <br>
-      <button id="btnVideoDone" disabled>Liberar Agendamento</button>
+  <!-- Modal de regras -->
+  <div id="rulesModal">
+    <div id="rulesContainer">
+      <h2>Regras para Agendamento</h2>
+      <ul>
+        <li>✔ A solicitação deve ser realizada com até 10 minutos de antecedência do horário da van;</li>
+        <li>✔ O agendamento fora do horário não será atendido;</li>
+        <li>✔ A marcação deve ser apenas para o ponto/dia do embarque. Não é possível agendar para o dia posterior e/ou vários dias ao mesmo tempo;</li>
+        <li>✔ A cada dia, novo agendamento – mesmo que para o mesmo ponto e horário;</li>
+        <li>✔ Na falta de energia/internet por parte da Associação a marcação deve ser via contato telefônico: 
+          <a href="tel:+5531983908024">(31) 9 8390-8024</a>
+        </li>
+      </ul>
+      <label>
+        <input type="checkbox" id="acceptRules"> Li e aceito as regras
+      </label>
+      <button id="btnAcceptRules" disabled>Prosseguir</button>
     </div>
   </div>
 
-  <!-- Formulário flutuante -->
+  <!-- Formulário -->
   <div id="formAgendamento">
     <span id="closeForm">X</span>
     <h3>Agendar Ponto</h3>
@@ -222,18 +194,10 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // -------------------- MAPA --------------------
     var map = L.map('map').setView([-19.99752, -43.92611], 17);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
 
-    var busIcon = L.icon({
-      iconUrl: 'Ponto.png',
-      iconSize: [36, 36],
-      iconAnchor: [18, 36],
-      popupAnchor: [0, -36]
-    });
+    var busIcon = L.icon({ iconUrl: 'Ponto.png', iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36] });
 
     var pontos = [
       {nome: "PORTARIA", coords: [-19.9978072, -43.9266727]},
@@ -271,45 +235,27 @@
     var formBox = document.getElementById("formAgendamento");
     var pontoInput = document.getElementById("ponto");
     var closeBtn = document.getElementById("closeForm");
+    closeBtn.onclick = () => formBox.style.display = "none";
 
-    closeBtn.onclick = function() {
-      formBox.style.display = "none";
-    }
-
-    pontos.forEach(function(p) {
-      L.marker(p.coords, {icon: busIcon})
-        .addTo(map)
-        .on('click', function() {
-          pontoInput.value = p.nome;
-          formBox.style.display = "block";
-          preencherHorarios(p.nome);
-        });
+    pontos.forEach(p => {
+      L.marker(p.coords, {icon: busIcon}).addTo(map).on('click', function() {
+        const hoje = new Date();
+        const dia = hoje.getDay();
+        if (dia == 6 && (p.nome === "Ponto 13" || p.nome === "Ponto 24")) {
+          alert("⚠️ Aos sábados, não é necessário agendar para este ponto.");
+          return;
+        }
+        pontoInput.value = p.nome;
+        formBox.style.display = "block";
+        preencherHorarios(p.nome);
+      });
     });
 
-    map.locate({setView: true, maxZoom: 17});
-
-    function onLocationFound(e) {
-      var radius = e.accuracy / 2;
-      L.marker(e.latlng).addTo(map)
-        .bindPopup("Você está aqui").openPopup();
-      L.circle(e.latlng, radius).addTo(map);
-    }
-
-    function onLocationError(e) {
-      alert("Não foi possível obter sua localização.");
-    }
-
-    map.on('locationfound', onLocationFound);
-    map.on('locationerror', onLocationError);
-
-    // -------------------- FORMULÁRIO --------------------
     const horariosSelect = document.getElementById("horario");
-
     function preencherHorarios(ponto) {
       horariosSelect.innerHTML = "";
       const hoje = new Date();
       const dia = hoje.getDay();
-
       let horarios = [];
       if (dia >= 1 && dia <= 5) {
         horarios = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
@@ -319,8 +265,7 @@
       } else {
         horarios = ["08:00","12:00","14:00","16:00","18:00"];
       }
-
-      horarios.forEach(function(h) {
+      horarios.forEach(h => {
         const option = document.createElement("option");
         option.value = h;
         option.textContent = h;
@@ -330,39 +275,22 @@
 
     document.getElementById("form").addEventListener("submit", function(e){
       e.preventDefault();
-
-      if (!navigator.onLine) {
-        alert("⚠️ Você está sem conexão com a internet. O agendamento não foi feito.");
-        return;
-      }
-
+      if (!navigator.onLine) { alert("⚠️ Sem internet. O agendamento não foi feito."); return; }
       this.submit();
-      alert(
-        "✅ Agendamento feito com sucesso!\n" +
-        "Nome: " + document.getElementById("nome").value + "\n" +
-        "Ponto: " + pontoInput.value + "\n" +
-        "Horário: " + horariosSelect.value
-      );
+      alert("✅ Agendamento feito com sucesso!");
       formBox.style.display = "none";
       this.reset();
     });
 
-    // -------------------- VÍDEO OBRIGATÓRIO --------------------
-    const videoModal = document.getElementById("videoModal");
-    const video = document.getElementById("videoObrigatorio");
-    const btnVideoDone = document.getElementById("btnVideoDone");
+    // Modal regras
+    const rulesModal = document.getElementById("rulesModal");
+    const acceptRules = document.getElementById("acceptRules");
+    const btnAcceptRules = document.getElementById("btnAcceptRules");
+    acceptRules.addEventListener("change", () => btnAcceptRules.disabled = !acceptRules.checked);
+    btnAcceptRules.addEventListener("click", () => rulesModal.style.display = "none");
 
-    video.addEventListener("ended", function() {
-      btnVideoDone.disabled = false;
-    });
-
-    btnVideoDone.addEventListener("click", function() {
-      videoModal.style.display = "none";
-    });
-
-    // -------------------- STATUS DE CONEXÃO --------------------
+    // Status conexão
     const statusBanner = document.getElementById("statusBanner");
-
     function atualizarStatus() {
       if (navigator.onLine) {
         statusBanner.textContent = "✅ Conexão restabelecida";
@@ -373,7 +301,6 @@
         statusBanner.className = "offline";
       }
     }
-
     window.addEventListener("online", atualizarStatus);
     window.addEventListener("offline", atualizarStatus);
     atualizarStatus();
