@@ -194,117 +194,145 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    var map = L.map('map').setView([-19.99752, -43.92611], 17);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+  var map = L.map('map').setView([-19.99752, -43.92611], 17);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
 
-    var busIcon = L.icon({ iconUrl: 'Ponto.png', iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36] });
+  var busIcon = L.icon({ iconUrl: 'Ponto.png', iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36] });
+  var userIcon = L.icon({ // marcador azul para usuário
+    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34]
+  });
 
-    var pontos = [
-      {nome: "PORTARIA", coords: [-19.9978072, -43.9266727]},
-      {nome: "Ponto 30", coords: [-19.9977078, -43.9289372]},
-      {nome: "Ponto 28", coords: [-19.9986592, -43.9306448]},
-      {nome: "Ponto 29", coords: [-19.999421, -43.9326796]},
-      {nome: "Ponto 27", coords: [-20.0002531, -43.9314901]},
-      {nome: "Ponto 26", coords: [-20.0015469, -43.9333477]},
-      {nome: "Ponto 24", coords: [-20.003258, -43.9296246]},
-      {nome: "Ponto 25", coords: [-20.0050238, -43.9308419]},
-      {nome: "Ponto 21", coords: [-20.0027213, -43.9338594]},
-      {nome: "Ponto 22", coords: [-20.001474, -43.9355339]},
-      {nome: "Ponto 23", coords: [-20.0031588, -43.9364208]},
-      {nome: "Ponto 20", coords: [-20.0063663, -43.934352]},
-      {nome: "Ponto 19", coords: [-20.0085746, -43.9318072]},
-      {nome: "Ponto 17", coords: [-20.0104645, -43.9320381]},
-      {nome: "Ponto 18", coords: [-20.0088433, -43.9343321]},
-      {nome: "Ponto 12", coords: [-20.0088434, -43.9288248]},
-      {nome: "Ponto 13", coords: [-20.0094456, -43.9269802]},
-      {nome: "Ponto 14", coords: [-20.0075172, -43.9277972]},
-      {nome: "Ponto 16", coords: [-20.0068404, -43.9290337]},
-      {nome: "Ponto 15", coords: [-20.0079616, -43.9293497]},
-      {nome: "Ponto 09", coords: [-20.0110997, -43.9309597]},
-      {nome: "Ponto 10", coords: [-20.0120307, -43.9334509]},
-      {nome: "Ponto 11", coords: [-20.0098192, -43.9337648]},
-      {nome: "Ponto 08", coords: [-20.0102615, -43.9273848]},
-      {nome: "Ponto 05", coords: [-20.0114455, -43.9257426]},
-      {nome: "Ponto 06", coords: [-20.0112228, -43.9276231]},
-      {nome: "Ponto 07", coords: [-20.0108785, -43.9296971]},
-      {nome: "Ponto 04", coords: [-20.0068997, -43.9238609]},
-      {nome: "Ponto 03", coords: [-20.0047577, -43.9260624]},
-      {nome: "Ponto 02", coords: [-20.001753, -43.9270223]}
-    ];
+  var pontos = [
+    {nome: "PORTARIA", coords: [-19.9978072, -43.9266727]},
+    {nome: "Ponto 30", coords: [-19.9977078, -43.9289372]},
+    {nome: "Ponto 28", coords: [-19.9986592, -43.9306448]},
+    {nome: "Ponto 29", coords: [-19.999421, -43.9326796]},
+    {nome: "Ponto 27", coords: [-20.0002531, -43.9314901]},
+    {nome: "Ponto 26", coords: [-20.0015469, -43.9333477]},
+    {nome: "Ponto 24", coords: [-20.003258, -43.9296246]},
+    {nome: "Ponto 25", coords: [-20.0050238, -43.9308419]},
+    {nome: "Ponto 21", coords: [-20.0027213, -43.9338594]},
+    {nome: "Ponto 22", coords: [-20.001474, -43.9355339]},
+    {nome: "Ponto 23", coords: [-20.0031588, -43.9364208]},
+    {nome: "Ponto 20", coords: [-20.0063663, -43.934352]},
+    {nome: "Ponto 19", coords: [-20.0085746, -43.9318072]},
+    {nome: "Ponto 17", coords: [-20.0104645, -43.9320381]},
+    {nome: "Ponto 18", coords: [-20.0088433, -43.9343321]},
+    {nome: "Ponto 12", coords: [-20.0088434, -43.9288248]},
+    {nome: "Ponto 13", coords: [-20.0094456, -43.9269802]},
+    {nome: "Ponto 14", coords: [-20.0075172, -43.9277972]},
+    {nome: "Ponto 16", coords: [-20.0068404, -43.9290337]},
+    {nome: "Ponto 15", coords: [-20.0079616, -43.9293497]},
+    {nome: "Ponto 09", coords: [-20.0110997, -43.9309597]},
+    {nome: "Ponto 10", coords: [-20.0120307, -43.9334509]},
+    {nome: "Ponto 11", coords: [-20.0098192, -43.9337648]},
+    {nome: "Ponto 08", coords: [-20.0102615, -43.9273848]},
+    {nome: "Ponto 05", coords: [-20.0114455, -43.9257426]},
+    {nome: "Ponto 06", coords: [-20.0112228, -43.9276231]},
+    {nome: "Ponto 07", coords: [-20.0108785, -43.9296971]},
+    {nome: "Ponto 04", coords: [-20.0068997, -43.9238609]},
+    {nome: "Ponto 03", coords: [-20.0047577, -43.9260624]},
+    {nome: "Ponto 02", coords: [-20.001753, -43.9270223]}
+  ];
 
-    var formBox = document.getElementById("formAgendamento");
-    var pontoInput = document.getElementById("ponto");
-    var closeBtn = document.getElementById("closeForm");
-    closeBtn.onclick = () => formBox.style.display = "none";
+  var formBox = document.getElementById("formAgendamento");
+  var pontoInput = document.getElementById("ponto");
+  var closeBtn = document.getElementById("closeForm");
+  closeBtn.onclick = () => formBox.style.display = "none";
 
-    pontos.forEach(p => {
-      L.marker(p.coords, {icon: busIcon}).addTo(map).on('click', function() {
-        const hoje = new Date();
-        const dia = hoje.getDay();
-        if (dia == 6 && (p.nome === "Ponto 13" || p.nome === "Ponto 24")) {
-          alert("⚠️ Aos sábados, não é necessário agendar para este ponto.");
-          return;
-        }
-        pontoInput.value = p.nome;
-        formBox.style.display = "block";
-        preencherHorarios(p.nome);
-      });
-    });
-
-    const horariosSelect = document.getElementById("horario");
-    function preencherHorarios(ponto) {
-      horariosSelect.innerHTML = "";
+  pontos.forEach(p => {
+    L.marker(p.coords, {icon: busIcon}).addTo(map).on('click', function() {
       const hoje = new Date();
       const dia = hoje.getDay();
-      let horarios = [];
-      if (dia >= 1 && dia <= 5) {
-        horarios = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
-      } else if (dia == 6) {
-        if(ponto === "Ponto 13" || ponto === "Ponto 24") return;
-        horarios = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"];
-      } else {
-        horarios = ["08:00","12:00","14:00","16:00","18:00"];
+      if (dia == 6 && (p.nome === "Ponto 13" || p.nome === "Ponto 24")) {
+        alert("⚠️ Aos sábados, não é necessário agendar para este ponto.");
+        return;
       }
-      horarios.forEach(h => {
-        const option = document.createElement("option");
-        option.value = h;
-        option.textContent = h;
-        horariosSelect.appendChild(option);
-      });
-    }
-
-    document.getElementById("form").addEventListener("submit", function(e){
-      e.preventDefault();
-      if (!navigator.onLine) { alert("⚠️ Sem internet. O agendamento não foi feito."); return; }
-      this.submit();
-      alert("✅ Agendamento feito com sucesso!");
-      formBox.style.display = "none";
-      this.reset();
+      pontoInput.value = p.nome;
+      formBox.style.display = "block";
+      preencherHorarios(p.nome);
     });
+  });
 
-    // Modal regras
-    const rulesModal = document.getElementById("rulesModal");
-    const acceptRules = document.getElementById("acceptRules");
-    const btnAcceptRules = document.getElementById("btnAcceptRules");
-    acceptRules.addEventListener("change", () => btnAcceptRules.disabled = !acceptRules.checked);
-    btnAcceptRules.addEventListener("click", () => rulesModal.style.display = "none");
-
-    // Status conexão
-    const statusBanner = document.getElementById("statusBanner");
-    function atualizarStatus() {
-      if (navigator.onLine) {
-        statusBanner.textContent = "✅ Conexão restabelecida";
-        statusBanner.className = "online";
-        setTimeout(() => { statusBanner.style.display = "none"; }, 3000);
-      } else {
-        statusBanner.textContent = "⚠️ Sem conexão com a internet";
-        statusBanner.className = "offline";
-      }
+  const horariosSelect = document.getElementById("horario");
+  function preencherHorarios(ponto) {
+    horariosSelect.innerHTML = "";
+    const hoje = new Date();
+    const dia = hoje.getDay();
+    let horarios = [];
+    if (dia >= 1 && dia <= 5) {
+      horarios = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
+    } else if (dia == 6) {
+      if(ponto === "Ponto 13" || ponto === "Ponto 24") return;
+      horarios = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"];
+    } else {
+      horarios = ["08:00","12:00","14:00","16:00","18:00"];
     }
-    window.addEventListener("online", atualizarStatus);
-    window.addEventListener("offline", atualizarStatus);
-    atualizarStatus();
-  </script>
+    horarios.forEach(h => {
+      const option = document.createElement("option");
+      option.value = h;
+      option.textContent = h;
+      horariosSelect.appendChild(option);
+    });
+  }
+
+  document.getElementById("form").addEventListener("submit", function(e){
+    e.preventDefault();
+    if (!navigator.onLine) { alert("⚠️ Sem internet. O agendamento não foi feito."); return; }
+    this.submit();
+    alert("✅ Agendamento feito com sucesso!");
+    formBox.style.display = "none";
+    this.reset();
+  });
+
+  // Modal regras
+  const rulesModal = document.getElementById("rulesModal");
+  const acceptRules = document.getElementById("acceptRules");
+  const btnAcceptRules = document.getElementById("btnAcceptRules");
+  acceptRules.addEventListener("change", () => btnAcceptRules.disabled = !acceptRules.checked);
+
+  btnAcceptRules.addEventListener("click", () => {
+    rulesModal.style.display = "none";
+
+    // Solicita localização após aceitar termos
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        var userLat = position.coords.latitude;
+        var userLng = position.coords.longitude;
+
+        var userMarker = L.marker([userLat, userLng], {icon: userIcon}).addTo(map)
+          .bindPopup("📍 Você está aqui").openPopup();
+
+        map.setView([userLat, userLng], 17);
+      }, function() {
+        alert("⚠️ Não foi possível obter sua localização. Ative o GPS.");
+      });
+    } else {
+      alert("⚠️ Seu navegador não suporta geolocalização.");
+    }
+  });
+
+  // Status conexão
+  const statusBanner = document.getElementById("statusBanner");
+  function atualizarStatus() {
+    if (navigator.onLine) {
+      statusBanner.textContent = "✅ Conexão restabelecida";
+      statusBanner.className = "online";
+      setTimeout(() => { statusBanner.style.display = "none"; }, 3000);
+    } else {
+      statusBanner.textContent = "⚠️ Sem conexão com a internet";
+      statusBanner.className = "offline";
+    }
+  }
+  window.addEventListener("online", atualizarStatus);
+  window.addEventListener("offline", atualizarStatus);
+  atualizarStatus();
+</script>
 </body>
 </html>
+
+
 
