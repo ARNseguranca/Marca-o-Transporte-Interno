@@ -1,338 +1,1181 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa de Pontos de Ônibus Internos</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-  <style>
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Tahoma, sans-serif;
-      background-color: #4c8ad1;
-      color: #000000;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4A769B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Nascentes - Transporte</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    header {
-      display: flex;
-      align-items: center;
-      background: #ffffff;
-      color: #000;
-      padding: 12px 20px;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      z-index: 1000;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-    header img {
-      height: 45px;
-      margin-right: 15px;
-      border-radius: 8px;
-    }
+        #phoneFrame {
+            width: 100%;
+            max-width: 390px;
+            height: 844px;
+            max-height: 95vh;
+            background: #000;
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 30px 100px rgba(0,0,0,0.8), 0 0 0 10px #2a2a2a, 0 0 0 12px #1a1a1a;
+            position: relative;
+        }
 
-    header h1 {
-      font-size: 1.4rem;
-      margin: 0;
-      font-weight: 600;
-    }
+        #phoneFrame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 130px;
+            height: 28px;
+            background: #000;
+            border-radius: 0 0 20px 20px;
+            z-index: 10000;
+        }
 
-    #statusBanner {
-      position: fixed;
-      top: 60px;
-      left: 0;
-      width: 100%;
-      text-align: center;
-      padding: 8px;
-      font-weight: bold;
-      display: none;
-      z-index: 2000;
-    }
+        .screen {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s, visibility 0.4s;
+        }
 
-    #statusBanner.offline { background-color: #d9534f; color: white; display: block; }
-    #statusBanner.online { background-color: #5cb85c; color: white; display: block; }
+        .screen.active {
+            opacity: 1;
+            visibility: visible;
+        }
 
-    #map {
-      margin-top: 80px;
-      height: calc(100vh - 80px);
-      width: 100%;
-    }
+        /* ========== TELA 1: BOAS-VINDAS ========== */
+        #welcomeScreen {
+            background: linear-gradient(135deg, #4A769B 0%, #3d6380 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 30px 40px;
+            text-align: center;
+        }
 
-    #formAgendamento {
-      position: fixed;
-      top: 120px;
-      right: 20px;
-      background: white;
-      border: 2px solid #0078d7;
-      border-radius: 10px;
-      padding: 20px;
-      width: 250px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      display: none;
-      z-index: 1001;
-    }
+        .logo-box {
+            width: 160px;
+            height: 160px;
+            background: white;
+            border-radius: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            padding: 25px;
+        }
 
-    #formAgendamento h3 { margin: 0 0 10px; font-size: 1.1rem; color: #004aad; }
+        .logo-box img {
+            width: 130%;
+            height: 130%;
+            object-fit: contain;
+        }
 
-    #formAgendamento label { display: block; margin-top: 10px; font-weight: 500; }
+        #welcomeScreen h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
 
-    #formAgendamento select,
-    #formAgendamento input[type="text"] {
-      width: 100%;
-      padding: 6px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
+        #welcomeScreen p {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 50px;
+            line-height: 1.5;
+        }
 
-    #formAgendamento button {
-      margin-top: 15px;
-      background: #0078d7;
-      color: white;
-      border: none;
-      padding: 8px;
-      width: 100%;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-    }
+        .btn-primary {
+            background: white;
+            color: #4A769B;
+            border: none;
+            padding: 16px 50px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            transition: transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-    #formAgendamento button:hover { background: #004aad; }
+        .btn-primary:active {
+            transform: scale(0.95);
+        }
 
-    #closeForm { position: absolute; top: 8px; right: 10px; cursor: pointer; color: #0078d7; font-weight: bold; }
+        /* ========== TELA 2: REGRAS ========== */
+        #rulesScreen {
+            background: #0a0e12;
+            display: flex;
+            flex-direction: column;
+        }
 
-    /* Modal das regras */
-    #rulesModal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
+        .header-rules {
+            background: linear-gradient(135deg, #4A769B 0%, #3d6380 100%);
+            padding: 50px 20px 25px;
+            text-align: center;
+        }
 
-    #rulesContainer {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 600px;
-      width: 90%;
-      text-align: left;
-    }
+        .header-rules h2 {
+            font-size: 1.6rem;
+            color: white;
+            margin-bottom: 8px;
+        }
 
-    #rulesContainer h2 { text-align: center; margin-top: 0; }
+        .header-rules p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
 
-    #rulesContainer ul { padding-left: 20px; }
+        .rules-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
 
-    #btnAcceptRules {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background: #0078d7;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-    }
+        .rule-item {
+            background: #131920;
+            padding: 15px;
+            border-radius: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 12px;
+        }
 
-    #btnAcceptRules:disabled { background: #999; cursor: not-allowed; }
-  </style>
+        .rule-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(74,118,155,0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .rule-icon i {
+            color: #7A9BB7;
+            font-size: 1.1rem;
+        }
+
+        .rule-text {
+            flex: 1;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: white;
+        }
+
+        .rule-text strong {
+            color: #7A9BB7;
+        }
+
+        .rule-text a {
+            color: #5CB3FF;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .voice-section {
+            background: rgba(74,118,155,0.1);
+            border: 2px solid #4A769B;
+            padding: 18px;
+            border-radius: 16px;
+            margin: 20px 0;
+        }
+
+        .voice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .voice-header h3 {
+            font-size: 1rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .switch {
+            position: relative;
+            width: 52px;
+            height: 30px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #333;
+            border-radius: 30px;
+            transition: 0.3s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        input:checked + .slider {
+            background: #00D9A3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        .voice-desc {
+            font-size: 0.85rem;
+            color: #8e9aaf;
+            line-height: 1.4;
+        }
+
+        .accept-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 16px;
+            background: #131920;
+            border-radius: 14px;
+            border: 2px solid #4A769B;
+        }
+
+        .accept-box input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: #4A769B;
+        }
+
+        .accept-box label {
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .btn-continue {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #00D9A3 0%, #00b386 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,217,163,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+
+        .btn-continue:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-continue:not(:disabled):active {
+            transform: scale(0.98);
+        }
+
+        /* ========== TELA 3: MAPA ========== */
+        #mapScreen {
+            background: #0a0e12;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-header {
+            background: linear-gradient(135deg, #4A769B 0%, #3d6380 100%);
+            padding: 50px 15px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-small {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+        }
+
+        .logo-small img {
+            width: 150%;
+            height: 150%;
+            object-fit: contain;
+        }
+
+        .header-title h1 {
+            font-size: 0.95rem;
+            color: white;
+            font-weight: 700;
+        }
+
+        .header-title p {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:active {
+            transform: scale(0.9);
+        }
+
+        .btn-icon.active {
+            background: #00D9A3;
+        }
+
+        #mapContainer {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .fab-group {
+            position: absolute;
+            bottom: 20px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 999;
+        }
+
+        .fab {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #4A769B 0%, #3d6380 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(74,118,155,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .fab:active {
+            transform: scale(0.92);
+        }
+
+        .fab.voice-active {
+            background: linear-gradient(135deg, #FF4757 0%, #c9302c 100%);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 6px 18px rgba(255,71,87,0.5); }
+            50% { box-shadow: 0 6px 28px rgba(255,71,87,0.8); }
+        }
+
+        #formSheet {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #131920;
+            border-radius: 20px 20px 0 0;
+            padding: 18px 18px 30px;
+            transform: translateY(100%);
+            transition: transform 0.4s;
+            z-index: 1500;
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.6);
+            max-height: 65%;
+            overflow-y: auto;
+        }
+
+        #formSheet.show {
+            transform: translateY(0);
+        }
+
+        .sheet-handle {
+            width: 35px;
+            height: 4px;
+            background: #666;
+            border-radius: 2px;
+            margin: 0 auto 18px;
+        }
+
+        .form-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .form-title h3 {
+            font-size: 1.2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-close {
+            width: 30px;
+            height: 30px;
+            background: #1a2330;
+            border: none;
+            border-radius: 50%;
+            color: #999;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-field {
+            margin-bottom: 15px;
+        }
+
+        .form-field label {
+            display: block;
+            font-size: 0.75rem;
+            color: #8e9aaf;
+            font-weight: 600;
+            margin-bottom: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .form-field input,
+        .form-field select {
+            width: 100%;
+            padding: 13px 13px 13px 40px;
+            background: #1a2330;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border 0.3s;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus {
+            outline: none;
+            border-color: #4A769B;
+        }
+
+        .btn-mic {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 34px;
+            height: 34px;
+            background: #4A769B;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .btn-mic.listening {
+            background: #FF4757;
+            animation: pulse 1.5s infinite;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4A769B 0%, #3d6380 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(74,118,155,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 18px;
+            transition: transform 0.2s;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        .toast {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(150px);
+            background: #131920;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 4000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.5s;
+            max-width: 85%;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success { background: #00D9A3; }
+        .toast.error { background: #FF4757; }
+        .toast.warning { background: #FFB800; }
+
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 5000;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 45px;
+            height: 45px;
+            border: 4px solid rgba(74,118,155,0.2);
+            border-top-color: #4A769B;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .leaflet-popup-content-wrapper {
+            background: #131920;
+            color: white;
+            border-radius: 12px;
+            border: 2px solid #4A769B;
+        }
+
+        .leaflet-popup-content {
+            margin: 8px;
+            font-weight: 600;
+        }
+
+        .leaflet-popup-tip {
+            background: #131920;
+        }
+
+        @media (max-width: 450px) {
+            body {
+                padding: 0;
+            }
+            #phoneFrame {
+                max-width: 100%;
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            #phoneFrame::before {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <img src="logo-nascentes.jpg" alt="Logo">
-    <h1>Mapa de Pontos de Ônibus</h1>
-  </header>
+    <div id="phoneFrame">
+        <!-- TELA 1: BOAS-VINDAS -->
+        <div id="welcomeScreen" class="screen active">
+            <div class="logo-box">
+                <img src="Logotipo1.png"Logo">
+            </div>
+            <h1>Bem-vindo ao<br>Nascentes Vale dos Cristais</h1>
+            <p>Sistema de Marcação de<br>Pontos de Ônibus Internos</p>
+            <button class="btn-primary" onclick="goToRules()">
+                Continuar
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
 
-  <div id="statusBanner"></div>
-  <div id="map"></div>
+        <!-- TELA 2: REGRAS -->
+        <div id="rulesScreen" class="screen">
+            <div class="header-rules">
+                <h2>📋 Regras de Uso</h2>
+                <p>Leia atentamente antes de continuar</p>
+            </div>
+            <div class="rules-body">
+                <div class="rule-item">
+                    <div class="rule-icon"><i class="fas fa-clock"></i></div>
+                    <div class="rule-text">
+                        Solicite com <strong>até 10 minutos de antecedência</strong> do horário da van
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-icon"><i class="fas fa-ban"></i></div>
+                    <div class="rule-text">
+                        Agendamento <strong>fora do horário não será atendido</strong>
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-icon"><i class="fas fa-calendar-day"></i></div>
+                    <div class="rule-text">
+                        Marcação apenas para o <strong>ponto e dia do embarque</strong>
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-icon"><i class="fas fa-redo"></i></div>
+                    <div class="rule-text">
+                        <strong>Novo agendamento a cada dia</strong>, mesmo para o mesmo ponto
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <div class="rule-icon"><i class="fas fa-phone"></i></div>
+                    <div class="rule-text">
+                        Sem energia/internet, ligue: <a href="tel:+5531983908024"><strong>(31) 9 8390-8024</strong></a>
+                    </div>
+                </div>
 
-  <!-- Modal de regras -->
-  <div id="rulesModal">
-    <div id="rulesContainer">
-      <h2>Regras para Agendamento</h2>
-      <ul>
-        <li>✔ A solicitação deve ser realizada com até 10 minutos de antecedência do horário da van;</li>
-        <li>✔ O agendamento fora do horário não será atendido;</li>
-        <li>✔ A marcação deve ser apenas para o ponto/dia do embarque. Não é possível agendar para o dia posterior e/ou vários dias ao mesmo tempo;</li>
-        <li>✔ A cada dia, novo agendamento – mesmo que para o mesmo ponto e horário;</li>
-        <li>✔ Na falta de energia/internet por parte da Associação a marcação deve ser via contato telefônico: 
-          <a href="tel:+5531983908024">(31) 9 8390-8024</a>
-        </li>
-      </ul>
-      <label>
-        <input type="checkbox" id="acceptRules"> Li e aceito as regras
-      </label>
-      <button id="btnAcceptRules" disabled>Prosseguir</button>
+                <div class="voice-section">
+                    <div class="voice-header">
+                        <h3><i class="fas fa-microphone"></i> Assistente de Voz</h3>
+                        <label class="switch">
+                            <input type="checkbox" id="voiceToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="voice-desc">Ative para receber instruções por voz e usar comandos falados</p>
+                </div>
+
+                <div class="accept-box">
+                    <input type="checkbox" id="acceptCheck">
+                    <label for="acceptCheck">Li e aceito todas as regras</label>
+                </div>
+
+                <button class="btn-continue" id="btnGoMap" disabled>
+                    <i class="fas fa-map-marked-alt"></i>
+                    Acessar o Mapa
+                </button>
+            </div>
+        </div>
+
+        <!-- TELA 3: MAPA -->
+        <div id="mapScreen" class="screen">
+            <div class="map-header">
+                <div class="header-left">
+                    <div class="logo-small">
+                        <img src="Logo site.png" alt="Logo">
+                    </div>
+                    <div class="header-title">
+                        <h1>Nascentes</h1>
+                        <p>Transporte Interno</p>
+                    </div>
+                </div>
+                <div class="header-buttons">
+                    <button class="btn-icon" id="btnVoiceToggle">
+                        <i class="fas fa-microphone-slash"></i>
+                    </button>
+                    <button class="btn-icon" onclick="backToRules()">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="mapContainer">
+                <div id="map"></div>
+                
+                <div class="fab-group">
+                    <button class="fab" id="btnLocation">
+                        <i class="fas fa-location-crosshairs"></i>
+                    </button>
+                    <button class="fab" id="btnVoice">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+
+                <div id="formSheet">
+                    <div class="sheet-handle"></div>
+                    <div class="form-title">
+                        <h3><i class="fas fa-bus"></i> Agendar Ponto</h3>
+                        <button class="btn-close" id="btnCloseForm">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <form id="agendamentoForm" action="https://docs.google.com/forms/d/e/1FAIpQLSedg-XNufEu483TWf-WlAHpl4z8Fq-HEjH0XvOIhR6Y1YshOg/formResponse" method="POST" target="hiddenFrame">
+                        <div class="form-field">
+                            <label>Nome</label>
+                            <div class="input-group">
+                                <i class="input-icon fas fa-user"></i>
+                                <input type="text" id="nomeInput" name="entry.1813093835" placeholder="Seu nome completo" required>
+                                <button type="button" class="btn-mic" onclick="voiceInput('nomeInput')">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label>Ponto</label>
+                            <div class="input-group">
+                                <i class="input-icon fas fa-map-marker-alt"></i>
+                                <input type="text" id="pontoInput" name="entry.1553871928" readonly required>
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label>Horário</label>
+                            <div class="input-group">
+                                <i class="input-icon fas fa-clock"></i>
+                                <select id="horarioSelect" name="entry.1757535250" required>
+                                    <option value="">Selecione</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-check-circle"></i>
+                            Confirmar Agendamento
+                        </button>
+                    </form>
+                </div>
+
+                <div class="toast" id="toast">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="toastMsg"></span>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Formulário -->
-  <div id="formAgendamento">
-    <span id="closeForm">X</span>
-    <h3>Agendar Ponto</h3>
-    <form id="form" action="https://docs.google.com/forms/d/e/1FAIpQLSedg-XNufEu483TWf-WlAHpl4z8Fq-HEjH0XvOIhR6Y1YshOg/formResponse" method="POST" target="hidden_iframe">
-      <label for="nome">Nome do Solicitante:</label>
-      <input type="text" id="nome" name="entry.1813093835" required>
+    <iframe name="hiddenFrame" style="display:none;"></iframe>
 
-      <label for="ponto">Ponto:</label>
-      <input type="text" id="ponto" name="entry.1553871928" readonly required>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        let map, userMarker;
+        let voiceEnabled = false;
+        let voiceActive = false;
+        let recognition;
+        let targetInput = null;
+        const synth = window.speechSynthesis;
 
-      <label for="horario">Horário:</label>
-      <select id="horario" name="entry.1757535250"></select>
+        // NAVEGAÇÃO
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            vibrate(50);
+        }
 
-      <button type="submit">Agendar</button>
-    </form>
-  </div>
+        function goToRules() {
+            showScreen('rulesScreen');
+        }
 
-  <iframe name="hidden_iframe" style="display:none;"></iframe>
+        function goToMap() {
+            showScreen('mapScreen');
+            setTimeout(() => {
+                if (!map) initMap();
+                map.invalidateSize();
+                requestLocation();
+            }, 100);
+        }
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-  var map = L.map('map').setView([-19.99752, -43.92611], 17);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+        function backToRules() {
+            showScreen('rulesScreen');
+        }
 
-  var busIcon = L.icon({ iconUrl: 'Ponto.png', iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36] });
-  var userIcon = L.icon({ // marcador azul para usuário
-    iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34]
-  });
+        // VOZ
+        function speak(text) {
+            if (!voiceEnabled) return;
+            synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'pt-BR';
+            synth.speak(utterance);
+        }
 
-  var pontos = [
-    {nome: "PORTARIA", coords: [-19.9978072, -43.9266727]},
-    {nome: "Ponto 30", coords: [-19.9977078, -43.9289372]},
-    {nome: "Ponto 28", coords: [-19.9986592, -43.9306448]},
-    {nome: "Ponto 29", coords: [-19.999421, -43.9326796]},
-    {nome: "Ponto 27", coords: [-20.0002531, -43.9314901]},
-    {nome: "Ponto 26", coords: [-20.0015469, -43.9333477]},
-    {nome: "Ponto 24", coords: [-20.003258, -43.9296246]},
-    {nome: "Ponto 25", coords: [-20.0050238, -43.9308419]},
-    {nome: "Ponto 21", coords: [-20.0027213, -43.9338594]},
-    {nome: "Ponto 22", coords: [-20.001474, -43.9355339]},
-    {nome: "Ponto 23", coords: [-20.0031588, -43.9364208]},
-    {nome: "Ponto 20", coords: [-20.0063663, -43.934352]},
-    {nome: "Ponto 19", coords: [-20.0085746, -43.9318072]},
-    {nome: "Ponto 17", coords: [-20.0104645, -43.9320381]},
-    {nome: "Ponto 18", coords: [-20.0088433, -43.9343321]},
-    {nome: "Ponto 12", coords: [-20.0088434, -43.9288248]},
-    {nome: "Ponto 13", coords: [-20.0094456, -43.9269802]},
-    {nome: "Ponto 14", coords: [-20.0075172, -43.9277972]},
-    {nome: "Ponto 16", coords: [-20.0068404, -43.9290337]},
-    {nome: "Ponto 15", coords: [-20.0079616, -43.9293497]},
-    {nome: "Ponto 09", coords: [-20.0110997, -43.9309597]},
-    {nome: "Ponto 10", coords: [-20.0120307, -43.9334509]},
-    {nome: "Ponto 11", coords: [-20.0098192, -43.9337648]},
-    {nome: "Ponto 08", coords: [-20.0102615, -43.9273848]},
-    {nome: "Ponto 05", coords: [-20.0114455, -43.9257426]},
-    {nome: "Ponto 06", coords: [-20.0112228, -43.9276231]},
-    {nome: "Ponto 07", coords: [-20.0108785, -43.9296971]},
-    {nome: "Ponto 04", coords: [-20.0068997, -43.9238609]},
-    {nome: "Ponto 03", coords: [-20.0047577, -43.9260624]},
-    {nome: "Ponto 02", coords: [-20.001753, -43.9270223]}
-  ];
+        function initVoice() {
+            if (!('webkitSpeechRecognition' in window)) return;
+            recognition = new window.webkitSpeechRecognition();
+            recognition.lang = 'pt-BR';
+            recognition.continuous = false;
 
-  var formBox = document.getElementById("formAgendamento");
-  var pontoInput = document.getElementById("ponto");
-  var closeBtn = document.getElementById("closeForm");
-  closeBtn.onclick = () => formBox.style.display = "none";
+            recognition.onresult = (e) => {
+                const text = e.results[0][0].transcript;
+                if (targetInput) {
+                    document.getElementById(targetInput).value = text;
+                    targetInput = null;
+                    showToast('Texto capturado!', 'success');
+                } else {
+                    handleCommand(text);
+                }
+            };
 
-  pontos.forEach(p => {
-    L.marker(p.coords, {icon: busIcon}).addTo(map).on('click', function() {
-      const hoje = new Date();
-      const dia = hoje.getDay();
-      if (dia == 6 && (p.nome === "Ponto 13" || p.nome === "Ponto 24")) {
-        alert("⚠️ Aos sábados, não é necessário agendar para este ponto.");
-        return;
-      }
-      pontoInput.value = p.nome;
-      formBox.style.display = "block";
-      preencherHorarios(p.nome);
-    });
-  });
+            recognition.onend = () => {
+                if (voiceActive) {
+                    setTimeout(() => recognition.start(), 500);
+                }
+            };
+        }
 
-  const horariosSelect = document.getElementById("horario");
-  function preencherHorarios(ponto) {
-    horariosSelect.innerHTML = "";
-    const hoje = new Date();
-    const dia = hoje.getDay();
-    let horarios = [];
-    if (dia >= 1 && dia <= 5) {
-      horarios = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
-    } else if (dia == 6) {
-      if(ponto === "Ponto 13" || ponto === "Ponto 24") return;
-      horarios = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"];
-    } else {
-      horarios = ["08:00","12:00","14:00","16:00","18:00"];
-    }
-    horarios.forEach(h => {
-      const option = document.createElement("option");
-      option.value = h;
-      option.textContent = h;
-      horariosSelect.appendChild(option);
-    });
-  }
+        function voiceInput(field) {
+            if (!recognition) return;
+            targetInput = field;
+            recognition.start();
+            speak('Diga o texto');
+            vibrate(100);
+        }
 
-  document.getElementById("form").addEventListener("submit", function(e){
-    e.preventDefault();
-    if (!navigator.onLine) { alert("⚠️ Sem internet. O agendamento não foi feito."); return; }
-    this.submit();
-    alert("✅ Agendamento feito com sucesso!");
-    formBox.style.display = "none";
-    this.reset();
-  });
+        function toggleVoice() {
+            if (!voiceEnabled) {
+                showToast('Ative a voz nas regras primeiro', 'warning');
+                return;
+            }
 
-  // Modal regras
-  const rulesModal = document.getElementById("rulesModal");
-  const acceptRules = document.getElementById("acceptRules");
-  const btnAcceptRules = document.getElementById("btnAcceptRules");
-  acceptRules.addEventListener("change", () => btnAcceptRules.disabled = !acceptRules.checked);
+            voiceActive = !voiceActive;
+            const btn = document.getElementById('btnVoice');
+            const icon = document.getElementById('btnVoiceToggle').querySelector('i');
 
-  btnAcceptRules.addEventListener("click", () => {
-    rulesModal.style.display = "none";
+            if (voiceActive) {
+                btn.classList.add('voice-active');
+                icon.className = 'fas fa-microphone';
+                document.getElementById('btnVoiceToggle').classList.add('active');
+                if (recognition) recognition.start();
+                speak('Assistente ativado');
+                vibrate([100,50,100]);
+            } else {
+                btn.classList.remove('voice-active');
+                icon.className = 'fas fa-microphone-slash';
+                document.getElementById('btnVoiceToggle').classList.remove('active');
+                if (recognition) recognition.stop();
+                speak('Assistente desativado');
+                vibrate(50);
+            }
+        }
 
-    // Solicita localização após aceitar termos
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        var userLat = position.coords.latitude;
-        var userLng = position.coords.longitude;
+        function handleCommand(cmd) {
+            cmd = cmd.toLowerCase();
+            if (cmd.includes('localização') || cmd.includes('onde')) {
+                requestLocation();
+            } else if (cmd.includes('regras')) {
+                backToRules();
+            } else if (cmd.includes('fechar')) {
+                hideForm();
+            }
+        }
 
-        var userMarker = L.marker([userLat, userLng], {icon: userIcon}).addTo(map)
-          .bindPopup("📍 Você está aqui").openPopup();
+        // MAPA
+        function initMap() {
+            map = L.map('map').setView([-19.99752, -43.92611], 17);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        map.setView([userLat, userLng], 17);
-      }, function() {
-        alert("⚠️ Não foi possível obter sua localização. Ative o GPS.");
-      });
-    } else {
-      alert("⚠️ Seu navegador não suporta geolocalização.");
-    }
-  });
+            const icon = L.icon({
+                iconUrl: 'Ponto.png',
+                iconSize: [36,36],
+                iconAnchor: [18,36],
+                popupAnchor: [0,-36]
+            });
 
-  // Status conexão
-  const statusBanner = document.getElementById("statusBanner");
-  function atualizarStatus() {
-    if (navigator.onLine) {
-      statusBanner.textContent = "✅ Conexão restabelecida";
-      statusBanner.className = "online";
-      setTimeout(() => { statusBanner.style.display = "none"; }, 3000);
-    } else {
-      statusBanner.textContent = "⚠️ Sem conexão com a internet";
-      statusBanner.className = "offline";
-    }
-  }
-  window.addEventListener("online", atualizarStatus);
-  window.addEventListener("offline", atualizarStatus);
-  atualizarStatus();
-</script>
+            const pontos = [
+                {nome:"PORTARIA",coords:[-19.9978072,-43.9266727]},
+                {nome:"Ponto 30",coords:[-19.9977078,-43.9289372]},
+                {nome:"Ponto 28",coords:[-19.9986592,-43.9306448]},
+                {nome:"Ponto 29",coords:[-19.999421,-43.9326796]},
+                {nome:"Ponto 27",coords:[-20.0002531,-43.9314901]},
+                {nome:"Ponto 26",coords:[-20.0015469,-43.9333477]},
+                {nome:"Ponto 24",coords:[-20.003258,-43.9296246]},
+                {nome:"Ponto 25",coords:[-20.0050238,-43.9308419]},
+                {nome:"Ponto 21",coords:[-20.0027213,-43.9338594]},
+                {nome:"Ponto 22",coords:[-20.001474,-43.9355339]},
+                {nome:"Ponto 23",coords:[-20.0031588,-43.9364208]},
+                {nome:"Ponto 20",coords:[-20.0063663,-43.934352]},
+                {nome:"Ponto 19",coords:[-20.0085746,-43.9318072]},
+                {nome:"Ponto 17",coords:[-20.0104645,-43.9320381]},
+                {nome:"Ponto 18",coords:[-20.0088433,-43.9343321]},
+                {nome:"Ponto 12",coords:[-20.0088434,-43.9288248]},
+                {nome:"Ponto 13",coords:[-20.0094456,-43.9269802]},
+                {nome:"Ponto 14",coords:[-20.0075172,-43.9277972]},
+                {nome:"Ponto 16",coords:[-20.0068404,-43.9290337]},
+                {nome:"Ponto 15",coords:[-20.0079616,-43.9293497]},
+                {nome:"Ponto 09",coords:[-20.0110997,-43.9309597]},
+                {nome:"Ponto 10",coords:[-20.0120307,-43.9334509]},
+                {nome:"Ponto 11",coords:[-20.0098192,-43.9337648]},
+                {nome:"Ponto 08",coords:[-20.0102615,-43.9273848]},
+                {nome:"Ponto 05",coords:[-20.0114455,-43.9257426]},
+                {nome:"Ponto 06",coords:[-20.0112228,-43.9276231]},
+                {nome:"Ponto 07",coords:[-20.0108785,-43.9296971]},
+                {nome:"Ponto 04",coords:[-20.0068997,-43.9238609]},
+                {nome:"Ponto 03",coords:[-20.0047577,-43.9260624]},
+                {nome:"Ponto 02",coords:[-20.001753,-43.9270223]}
+            ];
+
+            pontos.forEach(p => {
+                L.marker(p.coords, {icon}).addTo(map).on('click', () => selectPonto(p.nome));
+            });
+        }
+
+        function selectPonto(nome) {
+            const dia = new Date().getDay();
+            if (dia === 6 && (nome === "Ponto 13" || nome === "Ponto 24")) {
+                showToast('Aos sábados este ponto não precisa agendar', 'warning');
+                speak('Aos sábados não é necessário agendar este ponto');
+                vibrate([200,100,200]);
+                return;
+            }
+
+            document.getElementById('pontoInput').value = nome;
+            fillHorarios(nome);
+            showForm();
+            speak(`${nome} selecionado`);
+            vibrate(50);
+        }
+
+        function fillHorarios(ponto) {
+            const select = document.getElementById('horarioSelect');
+            select.innerHTML = '<option value="">Selecione</option>';
+
+            const dia = new Date().getDay();
+            let horarios = [];
+
+            if (dia >= 1 && dia <= 5) {
+                horarios = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"];
+            } else if (dia === 6) {
+                if (ponto === "Ponto 13" || ponto === "Ponto 24") return;
+                horarios = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00"];
+            } else {
+                horarios = ["08:00","12:00","14:00","16:00","18:00"];
+            }
+
+            horarios.forEach(h => {
+                const opt = document.createElement('option');
+                opt.value = h;
+                opt.textContent = h;
+                select.appendChild(opt);
+            });
+        }
+
+        function requestLocation() {
+            if (!navigator.geolocation) {
+                showToast('Geolocalização não disponível', 'error');
+                return;
+            }
+
+            showLoading(true);
+            speak('Obtendo localização');
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const icon = L.icon({
+                        iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+                        iconSize: [25,41],
+                        iconAnchor: [12,41]
+                    });
+
+                    if (userMarker) map.removeLayer(userMarker);
+                    userMarker = L.marker([pos.coords.latitude, pos.coords.longitude], {icon})
+                        .addTo(map).bindPopup('📍 Você está aqui').openPopup();
+
+                    map.setView([pos.coords.latitude, pos.coords.longitude], 17);
+                    showLoading(false);
+                    showToast('Localização encontrada', 'success');
+                    speak('Localização encontrada');
+                    vibrate(100);
+                },
+                () => {
+                    showLoading(false);
+                    showToast('Não foi possível obter localização', 'error');
+                    speak('Erro ao obter localização. Ative o GPS');
+                    vibrate([100,50,100]);
+                }
+            );
+        }
+
+        // FORMULÁRIO
+        function showForm() {
+            document.getElementById('formSheet').classList.add('show');
+        }
+
+        function hideForm() {
+            document.getElementById('formSheet').classList.remove('show');
+        }
+
+        // UTILIDADES
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMsg');
+            const icon = toast.querySelector('i');
+
+            toast.className = `toast ${type}`;
+            msgEl.textContent = msg;
+
+            if (type === 'success') icon.className = 'fas fa-check-circle';
+            else if (type === 'error') icon.className = 'fas fa-exclamation-circle';
+            else icon.className = 'fas fa-exclamation-triangle';
+
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
+        }
+
+        function vibrate(pattern) {
+            if (navigator.vibrate) navigator.vibrate(pattern);
+        }
+
+        // EVENTOS
+        document.getElementById('voiceToggle').addEventListener('change', (e) => {
+            voiceEnabled = e.target.checked;
+            const icon = document.getElementById('btnVoiceToggle').querySelector('i');
+            icon.className = voiceEnabled ? 'fas fa-microphone' : 'fas fa-microphone-slash';
+            if (voiceEnabled) {
+                speak('Assistente de voz ativado');
+                vibrate(100);
+            }
+        });
+
+        document.getElementById('acceptCheck').addEventListener('change', (e) => {
+            document.getElementById('btnGoMap').disabled = !e.target.checked;
+        });
+
+        document.getElementById('btnGoMap').addEventListener('click', goToMap);
+        document.getElementById('btnLocation').addEventListener('click', requestLocation);
+        document.getElementById('btnVoice').addEventListener('click', toggleVoice);
+        document.getElementById('btnVoiceToggle').addEventListener('click', toggleVoice);
+        document.getElementById('btnCloseForm').addEventListener('click', hideForm);
+
+        document.getElementById('agendamentoForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!navigator.onLine) {
+                showToast('Sem internet', 'error');
+                speak('Sem conexão com a internet');
+                vibrate([200,100,200]);
+                return;
+            }
+
+            showLoading(true);
+            e.target.submit();
+
+            setTimeout(() => {
+                showLoading(false);
+                showToast('Agendamento confirmado!', 'success');
+                speak('Agendamento confirmado com sucesso');
+                vibrate([100,50,100,50,100]);
+                hideForm();
+                e.target.reset();
+            }, 1500);
+        });
+
+        // INIT
+        initVoice();
+    </script>
 </body>
 </html>
-
 
 
